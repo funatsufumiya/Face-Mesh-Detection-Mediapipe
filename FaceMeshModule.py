@@ -5,7 +5,7 @@ import time
 class faceMesh():
     def __init__(self):
         self.mpFaceMesh = mp.solutions.face_mesh
-        self.faceMesh = self.mpFaceMesh.FaceMesh()
+        self.faceMesh = self.mpFaceMesh.FaceMesh(max_num_faces=10)
         self.mpDraw = mp.solutions.drawing_utils
         
     def findFaceMesh(self, img, draw=True):
@@ -17,15 +17,18 @@ class faceMesh():
                     self.mpDraw.draw_landmarks(img, faceLms, self.mpFaceMesh.FACEMESH_CONTOURS)
         return img
     
-    def findPosition(self, img, draw=True):
+    def findPositions(self, img, draw=True):
         lmList = []
         if self.results.multi_face_landmarks:
-            for id, lm in enumerate(self.results.multi_face_landmarks[0].landmark):
-                h, w, c = img.shape
-                cx, cy = int(lm.x*w), int(lm.y*h)
-                lmList.append([id, cx, cy])
-                if draw:
-                    cv2.circle(img, (cx, cy), 5, (255, 0, 0), cv2.FILLED)
+            lst = []
+            for faceLms in self.results.multi_face_landmarks:
+                for id, lm in enumerate(faceLms.landmark):
+                    h, w, c = img.shape
+                    cx, cy = int(lm.x*w), int(lm.y*h)
+                    lst.append([id, cx, cy])
+                    if draw:
+                        cv2.circle(img, (cx, cy), 5, (255, 0, 0), cv2.FILLED)
+            lmList.append(lst)
         return lmList
     
 def main():
@@ -35,9 +38,9 @@ def main():
     while True:
         success, img = cap.read()
         img = detector.findFaceMesh(img)
-        lmList = detector.findPosition(img)
-        if len(lmList) != 0:
-            print(lmList[0])
+        lmList = detector.findPositions(img)
+        # if len(lmList) != 0:
+        #     print(lmList[0])
         cTime = time.time()
         fps = 1/(cTime-pTime)
         pTime = cTime

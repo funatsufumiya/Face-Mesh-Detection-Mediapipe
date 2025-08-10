@@ -1,8 +1,27 @@
 import cv2
 import mediapipe as mp
 import time
+import argparse
+import sys
+from cv2_enumerate_cameras import enumerate_cameras
 
-cap = cv2.VideoCapture(0)
+def print_camera_list():
+    for camera_info in enumerate_cameras():
+        print(f'{camera_info.index}: {camera_info.name}')
+
+parser = argparse.ArgumentParser(description="face mesh detector",
+                                 formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+parser.add_argument("-c","--camera", type=int, default=0, help="camera id")
+parser.add_argument("-l","--list-camera", action="store_true", default=False, help="print camera list and exit")
+
+args = parser.parse_args()
+
+print_camera_list()
+
+if args.list_camera:
+    sys.exit(0)
+
+cap = cv2.VideoCapture(args.camera)
 mpFaceMesh = mp.solutions.face_mesh
 faceMesh = mpFaceMesh.FaceMesh(max_num_faces=10)
 mpDraw = mp.solutions.drawing_utils
